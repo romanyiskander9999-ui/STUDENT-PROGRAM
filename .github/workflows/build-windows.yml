@@ -1,0 +1,68 @@
+name: Build Windows installer
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Restore source archive from Base64 parts
+        shell: pwsh
+        run: |
+          $parts = @(
+            '.sourcebundle/part01.txt',
+            '.sourcebundle/part02.txt',
+            '.sourcebundle/part03.txt',
+            '.sourcebundle/part04.txt',
+            '.sourcebundle/part05.txt',
+            '.sourcebundle/part06.txt'
+          )
+          $encoded = ($parts | ForEach-Object { (Get-Content $_ -Raw).Trim() }) -join ''
+          [IO.File]::WriteAllBytes('source_bundle.tar.gz', [Convert]::FromBase64String($encoded))
+          tar -xzf source_bundle.tar.gz
+          if (!(Test-Path 'student_manager.py')) { throw 'Source archive extraction failed.' }
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt pyinstaller
+
+      - name: Check Python syntax
+        run: python -m py_compile student_manager.py test_store.py
+
+      - name: Run database tests
+        run: python -m unittest -v test_store.py
+
+      - name: Build Windows executable
+        run: python -m PyInstaller --noconfirm --clean --onefile --windowed --name StudentManagerPro2026 --collect-all qrcode student_manager.py
+
+      - name: Install NSIS
+        run: choco install nsis -y --no-progress
+
+      - name: Build installer
+        shell: cmd
+        run: '"C:\Program Files (x86)\NSIS\makensis.exe" /V3 StudentManagerPro.nsi'
+
+      - name: Upload Windows build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: StudentManagerPro-v2.3-Windows
+          path: |
+            dist/StudentManagerPro2026.exe
+            StudentManagerPro_Setup.exe
+          if-no-files-found: error
+          retention-days: 30
