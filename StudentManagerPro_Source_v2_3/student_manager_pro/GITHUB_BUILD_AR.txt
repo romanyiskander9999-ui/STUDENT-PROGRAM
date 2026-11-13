@@ -1,0 +1,14 @@
+طريقة استخراج ملف التثبيت Windows (مرة واحدة فقط)
+
+1) أنشئ مستودعًا جديدًا وفارغًا في حساب GitHub باسم student-manager-pro-2026.
+   لا تضف README أو License أو .gitignore عند إنشاء المستودع.
+2) فك ضغط ملف المشروع، ثم افتح المستودع الجديد في GitHub.
+3) اختر Add file ثم Upload files، وارفع محتويات مجلد student_manager_pro نفسه، بما فيها المجلد المخفي .github.
+4) اضغط Commit changes.
+5) افتح تبويب Actions، ثم اختر Build Windows installer، واضغط Run workflow.
+6) بعد انتهاء التشغيل بنجاح، افتح تفاصيل التشغيل ثم قسم Artifacts، ونزّل StudentManagerPro-Windows-Installer.zip.
+7) فك ضغط الملف الناتج؛ ستجد StudentManagerPro_Setup.exe.
+
+لإصدار Release دائم: أنشئ Tag باسم v1.5.0 وارفعه إلى المستودع؛ سينشر GitHub ملف Setup.exe ضمن صفحة Releases تلقائيًا.
+
+ملاحظة: لا ترفع قاعدة بيانات المدرسة أو أي بيانات طلاب حقيقية إلى GitHub.
